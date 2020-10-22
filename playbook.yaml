@@ -11,12 +11,7 @@
      apt: name=aptitude update_cache=yes state=latest force_apt_get=yes
 
    - name: install Apache
-     apt: name=apache2 update_cache=yes state=latest
-
-   - name: enabled mod_rewrite
-     apache2_module: name=rewrite state=present
-     notify:
-        - restart apache2
+     apt: name=apache2 update_cache=yes state=lates
 
    - name: install MySql
      apt: name={{ item }} update_cache=yes state=latest
@@ -29,7 +24,17 @@
    - name: install php extensions
      apt: name={{ item }} update_cache=yes state=latest
      loop: "{{ php_modules }}"
+   
+   - name: create wordpress folder
+     become: yes
+     file:
+       path: "/var/www/{{ http_host }}"
+       state: directory
+       owner: "www-date"
+       group: "www-date"
+       mode: '0755'
      tags: [ test ]
+
    
   handlers:
    - name: restart apache2

@@ -3,3 +3,7 @@ php_modules: [ 'php-curl', 'php-gd', 'php-mbstring', 'php-xml', 'php-xmlrpc', 'p
 
 mysql_root_password: "svyatoslav"
 app_user: "svyatoslav"
+
+http_host: "wordpress"
+http_conf: "wordpress.conf"
+http_port: "80"
