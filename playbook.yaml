@@ -3,6 +3,8 @@
 - name: install and start LAMP
   hosts: LAMP
   become: yes
+  vars_files:
+   - vars/default.yaml
 
   tasks:
    - name: install Apache
@@ -12,6 +14,14 @@
      apache2_module: name=rewrite state=present
      notify:
         - restart apache2
+
+   - name: install MySql
+     apt:
+       name:
+         - mysql
+         - mysql-server
+         - python3-pymysql
+       state: latest
 
   handlers:
    - name: restart apache2
