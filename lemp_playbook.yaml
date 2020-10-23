@@ -1,0 +1,104 @@
+---
+ - name: install and start LEMP + wordpress
+   hosts: LEMP
+   become: yes
+   vars_files:
+    - vars/default.yaml
+
+
+   tasks:
+    - name: install prerequisites
+      apt: name=aptitude update_cache=yes state=latest force_apt_get=yes
+
+    - name: install nginx
+      apt: name=nginx update_cache=yes state=latest
+
+    - name: install MySql
+      apt: name={{ item }} update_cache=yes state=latest
+      loop: [ 'mysql-server', 'python3-pymysql' ]
+   
+    - name: install php
+      apt: name={{ item }} update_cache=yes state=latest
+      loop: [ 'php', 'php-mysql', 'libapache2-mod-php' ]
+
+    - name: install php extensions
+      apt: name={{ item }} update_cache=yes state=latest
+      loop: "{{ php_modules }}"
+
+    - name: create wordpress folder
+      file:
+        path: /var/www/{{ http_host }}
+        state: directory
+
+    - name: Sets Nginx conf file
+      template:
+        src: "files/nginx.conf"
+        dest: "/etc/nginx/sites-available/{{ http_conf }}"
+
+    - name: Enables new site
+      file:
+        src: "/etc/nginx/sites-available/{{ http_conf }}"
+        dest: "/etc/nginx/sites-enabled/{{ http_conf }}"
+        state: link
+    
+    - name: Removes "default" site
+      file:
+        path: "/etc/nginx/sites-enabled/default"
+        state: absent
+    
+    - name: create database
+     mysql_db:
+       name: "{{ mysql_db }}"
+       state: present
+       login_user: root
+       login_password: "{{ mysql_root_password }}"
+       login_unix_socket: /var/run/mysqld/mysqld.sock
+ 
+   - name: Create MySQL user for WordPress
+     mysql_user:
+       name: "{{ mysql_user }}"
+       password: "{{ mysql_password }}"
+       priv: "{{ mysql_db }}.*:ALL"
+       state: present
+       login_user: root
+       login_password: "{{ mysql_root_password }}"
+       login_unix_socket: /var/run/mysqld/mysqld.sock
+   
+   - name: Download and unpack WordPress
+     unarchive:
+       src: https://wordpress.org/latest.tar.gz
+       dest: "/var/www/{{ http_host }}"
+       remote_src: yes
+       creates: "/var/www/{{ http_host }}/wordpress"
+     
+   - name: set rights for wordpress folder
+     file:
+       path: /var/www/{{ http_host }}/wordpress
+       state: directory
+       recurse: yes
+       owner: www-data
+       group: www-data
+
+   - name: Set permissions for directories
+     shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type d -exec chmod 750 {} \\;"
+
+   - name: Set permissions for files
+     shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type f -exec chmod 640 {} \\;"
+
+   - name: Set up wp-config
+     template:
+       src: "files/wp-config.php"
+       dest: "/var/www/{{ http_host }}/wordpress/wp-config.php"
+
+
+
+  handlers:
+    - name: Reload Nginx
+      service:
+        name: nginx
+        state: reloaded
+
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
