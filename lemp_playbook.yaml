@@ -33,12 +33,12 @@
     - name: Sets Nginx conf file
       template:
         src: "files/nginx.conf"
-        dest: "/etc/nginx/sites-available/{{ http_conf }}"
+        dest: "/etc/nginx/sites-available/{{ http_conf2 }}"
 
     - name: Enables new site
       file:
-        src: "/etc/nginx/sites-available/{{ http_conf }}"
-        dest: "/etc/nginx/sites-enabled/{{ http_conf }}"
+        src: "/etc/nginx/sites-available/{{ http_conf2 }}"
+        dest: "/etc/nginx/sites-enabled/{{ http_conf2 }}"
         state: link
     
     - name: Removes "default" site
@@ -47,15 +47,15 @@
         state: absent
     
     - name: create database
-     mysql_db:
-       name: "{{ mysql_db }}"
-       state: present
-       login_user: root
-       login_password: "{{ mysql_root_password }}"
-       login_unix_socket: /var/run/mysqld/mysqld.sock
+      mysql_db:
+        name: "{{ mysql_db }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
  
-   - name: Create MySQL user for WordPress
-     mysql_user:
+    - name: Create MySQL user for WordPress
+      mysql_user:
        name: "{{ mysql_user }}"
        password: "{{ mysql_password }}"
        priv: "{{ mysql_db }}.*:ALL"
@@ -64,35 +64,35 @@
        login_password: "{{ mysql_root_password }}"
        login_unix_socket: /var/run/mysqld/mysqld.sock
    
-   - name: Download and unpack WordPress
-     unarchive:
-       src: https://wordpress.org/latest.tar.gz
-       dest: "/var/www/{{ http_host }}"
-       remote_src: yes
-       creates: "/var/www/{{ http_host }}/wordpress"
+    - name: Download and unpack WordPress
+      unarchive:
+        src: https://wordpress.org/latest.tar.gz
+        dest: "/var/www/{{ http_host }}"
+        remote_src: yes
+        creates: "/var/www/{{ http_host }}/wordpress"
      
-   - name: set rights for wordpress folder
-     file:
-       path: /var/www/{{ http_host }}/wordpress
-       state: directory
-       recurse: yes
-       owner: www-data
-       group: www-data
+    - name: set rights for wordpress folder
+      file:
+        path: /var/www/{{ http_host }}/wordpress
+        state: directory
+        recurse: yes
+        owner: www-data
+        group: www-data
 
-   - name: Set permissions for directories
-     shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type d -exec chmod 750 {} \\;"
+    - name: Set permissions for directories
+      shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type d -exec chmod 750 {} \\;"
 
-   - name: Set permissions for files
-     shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type f -exec chmod 640 {} \\;"
+    - name: Set permissions for files
+      shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type f -exec chmod 640 {} \\;"
 
-   - name: Set up wp-config
-     template:
-       src: "files/wp-config.php"
-       dest: "/var/www/{{ http_host }}/wordpress/wp-config.php"
+    - name: Set up wp-config
+      template:
+        src: "files/wp-config.php"
+        dest: "/var/www/{{ http_host }}/wordpress/wp-config.php"
 
 
 
-  handlers:
+   handlers:
     - name: Reload Nginx
       service:
         name: nginx

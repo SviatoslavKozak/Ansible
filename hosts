@@ -4,4 +4,4 @@ ubuntu20.04  ansible_host=35.209.240.34  ansible_user=svyatoslav  ansible_ssh_pr
 
 [LEMP]
 
-ubuntu  ansible_host=35.209.39.179  ansible_user=svyatoslav  ansible_ssh_private_key_file=/home/svyatoslav/.ssh/privat_key.pem
+ubuntu20.04  ansible_host=34.122.172.33  ansible_user=svyatoslav  ansible_ssh_private_key_file=/home/svyatoslav/.ssh/privat_key.pem
