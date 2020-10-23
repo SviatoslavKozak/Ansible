@@ -31,21 +31,21 @@
      file:
        path: /var/www/{{ http_host }}
        state: directory
-     # don't work
-     #  owner: www-date
-     #  group: www-date
-     #  mode: '0755'
-     #
 
    - name: set up virtualhost
      template:
-       src: "files/apache.conf"
+       src: "files/wordpress.conf"
        dest: "/etc/apache2/sites-available/{{ http_conf }}"
 
-   - name: enable new site and disable default
-     shell: /usr/sbin/a2enmod rewrite
-     shell: /usr/sbin/a2ensite {{ http_conf }}
-     shell: /usr/sbin/a2dissite 000-default.conf
+   - name: rewrite
+     command: a2enmod rewrite
+    
+   - name: enabled site
+     command: a2ensite wordpress.conf
+  
+   - name: disabled default config
+     command: a2dissite 000-default.conf
+     tags: [ rewrite ]
 
    - name: create database
      mysql_db:
@@ -56,9 +56,11 @@
        login_unix_socket: /var/run/mysqld/mysqld.sock
      tags: [ mysql ]
  
-   - name: create user
+   - name: Create MySQL user for WordPress
      mysql_user:
-       name: "{{ mysql_db }}"
+       name: "{{ mysql_user }}"
+       password: "{{ mysql_password }}"
+       priv: "{{ mysql_db }}.*:ALL"
        state: present
        login_user: root
        login_password: "{{ mysql_root_password }}"
@@ -72,15 +74,38 @@
        dest: "/var/www/{{ http_host }}"
        remote_src: yes
        creates: "/var/www/{{ http_host }}/wordpress"
+     
+   - name: set rights for wordpress folder
+     file:
+       path: /var/www/{{ http_host }}/wordpress
+       state: directory
+       recurse: yes
+       owner: www-data
+       group: www-data
+
+   - name: Set permissions for directories
+     shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type d -exec chmod 750 {} \\;"
+
+   - name: Set permissions for files
+     shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type f -exec chmod 640 {} \\;"
 
    - name: Set up wp-config
      template:
        src: "files/wp-config.php"
        dest: "/var/www/{{ http_host }}/wordpress/wp-config.php"
      tags: [ wordpress ]
+   
+   - name: reload apache2
+     service: name=apache2 state=reloaded
+
+   - name: restart apache2
+     service: name=apache2 state=restarted
 
 
   handlers:
+   - name: reload apache2
+     service: name=apache2 state=reloaded
+
    - name: restart apache2
      service: name=apache2 state=restarted
- 
+     
