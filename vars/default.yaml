@@ -2,7 +2,9 @@
 php_modules: [ 'php-curl', 'php-gd', 'php-mbstring', 'php-xml', 'php-xmlrpc', 'php-soap', 'php-intl', 'php-zip' ]
 
 mysql_root_password: "svyatoslav"
-app_user: "svyatoslav"
+mysql_user: "svyatoslav"
+mysql_db: "wordpress"
+mysql_password: "password"
 
 http_host: "wordpress"
 http_conf: "wordpress.conf"

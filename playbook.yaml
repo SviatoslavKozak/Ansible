@@ -11,7 +11,7 @@
      apt: name=aptitude update_cache=yes state=latest force_apt_get=yes
 
    - name: install Apache
-     apt: name=apache2 update_cache=yes state=lates
+     apt: name=apache2 update_cache=yes state=latest
 
    - name: install MySql
      apt: name={{ item }} update_cache=yes state=latest
@@ -32,9 +32,9 @@
        path: /var/www/{{ http_host }}
        state: directory
      # don't work
-       owner: www-date
-       group: www-date
-       mode: '0755'
+     #  owner: www-date
+     #  group: www-date
+     #  mode: '0755'
      #
 
    - name: set up virtualhost
@@ -46,6 +46,25 @@
      shell: /usr/sbin/a2enmod rewrite
      shell: /usr/sbin/a2ensite {{ http_conf }}
      shell: /usr/sbin/a2dissite 000-default.conf
+
+   - name: create database
+     mysql_db:
+       name: "{{ mysql_db }}"
+       state: present
+       login_user: root
+       login_password: "{{ mysql_root_password }}"
+       login_unix_socket: /var/run/mysqld/mysqld.sock
+     tags: [ mysql ]
+ 
+   - name: create user
+     mysql_user:
+       name: "{{ mysql_db }}"
+       state: present
+       login_user: root
+       login_password: "{{ mysql_root_password }}"
+       login_unix_socket: /var/run/mysqld/mysqld.sock
+     tags: [ mysql ]
+
 
    - name: Download and unpack WordPress
      unarchive:
