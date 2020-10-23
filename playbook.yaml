@@ -53,6 +53,11 @@
        dest: "/var/www/{{ http_host }}"
        remote_src: yes
        creates: "/var/www/{{ http_host }}/wordpress"
+
+   - name: Set up wp-config
+     template:
+       src: "files/wp-config.php"
+       dest: "/var/www/{{ http_host }}/wordpress/wp-config.php"
      tags: [ wordpress ]
 
 
